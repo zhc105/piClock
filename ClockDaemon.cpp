@@ -82,6 +82,7 @@ int ClockDaemon::Start()
 			bmp085->ReadTemperature(), 
 			bmp085->ReadPressure());
 		lcd->Print(1, 0, Buf);
+		//printf("%s\n", Buf);
 
 		if (t % UPDATE_STEPS <= 120 && t >= last_update + UPDATE_STEPS)
 		{

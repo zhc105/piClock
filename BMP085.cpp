@@ -44,7 +44,7 @@ INT BMP085::ReadRawTemp()
 {
 	wiringPiI2CWriteReg8(fd, 0xF4, 0x2E);
         usleep(5000);
-	return ReadI16(0xF6);
+	return ReadI16U(0xF6);
 }
 
 INT BMP085::ReadRawPressure()
@@ -73,7 +73,7 @@ double BMP085::ReadTemperature()
         LONG x1, x2, b5, b6;
 
         ut = ReadRawTemp();
-        //printf("UT  = %d\n", ut);
+        printf("UT  = %d\n", ut);
 
         x1 = (((LONG) ut - (LONG) ac6) * (LONG) ac5) >> 15;
         x2 = ((LONG) mc << 11) / (x1 + md);
