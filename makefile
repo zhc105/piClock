@@ -1,6 +1,6 @@
 CC = g++
-CFLAGS = -g `mysql_config --cflags`
-LIBS = -lwiringPi `mysql_config --libs`
+CFLAGS = -g $(shell mysql_config --cflags)
+LIBS = -lwiringPi $(shell mysql_config --libs)
 
 TARGET = piClock
 
@@ -13,10 +13,10 @@ all : $(TARGET)
 	@echo "All done"
 
 $(TARGET) : $(OBJS)
-	g++ $(LIBS) -o $@ $^ 
+	$(CC) $(LIBS) -o $@ $^ 
 
 %.o : %.cpp
-	g++ $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 	
 main.o : ClockDaemon.h
 ClockDaemon.o : BMP085.h LCD4bit.h
