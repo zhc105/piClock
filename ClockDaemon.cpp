@@ -44,17 +44,26 @@ void ClockDaemon::UpdateTemperature()
 	//printf("Pressure:   %0.2f hPa\n", pressure);
 
 	mysql_init(&mysql);
-	if (mysql_real_connect(&mysql, "localhost", "root", "1048576", "blogpi", 3306, NULL, 0) != NULL)
+	if (mysql_real_connect(&mysql, "192.168.225.107", "root", "1048576", "blogpi", 3306, NULL, 0) != NULL)
 	{
 		char sql[256];
 		snprintf(sql, sizeof(sql), 
-			"insert into system_status(update_date, temperature, pressure, cpu_temp) values (now(), %f, %f, %f)", 
-			temperature, pressure, cpu_temp);
-		if (!mysql_query(&mysql, sql))
-			printf("Update Success!\n");
-		else
+			"insert into module_report(update_date, report_id, value) values (now(), '1', '%f')", 
+			temperature);
+		if (mysql_query(&mysql, sql))
+			printf("Update Failed!\n");
+		snprintf(sql, sizeof(sql), 
+			"insert into module_report(update_date, report_id, value) values (now(), '2', '%f')", 
+			pressure);
+		if (mysql_query(&mysql, sql))
+			printf("Update Failed!\n");
+		snprintf(sql, sizeof(sql), 
+			"insert into module_report(update_date, report_id, value) values (now(), '3', '%f')", 
+			cpu_temp);
+		if (mysql_query(&mysql, sql))
 			printf("Update Failed!\n");
 	}	
+	printf("Update Finished!\n");
 	mysql_close(&mysql);
 }
 
@@ -84,7 +93,7 @@ int ClockDaemon::Start()
 		lcd->Print(1, 0, Buf);
 		//printf("%s\n", Buf);
 
-		if (t % UPDATE_STEPS <= 120 && t >= last_update + UPDATE_STEPS)
+		if (t >= last_update + UPDATE_STEPS)
 		{
 			last_update = t - (t % UPDATE_STEPS);
 			UpdateTemperature();

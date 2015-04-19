@@ -44,6 +44,8 @@ int LCD4bit::Init()
 	usleep(50);
 	write4bits(0x3, 0);
 	usleep(50);
+	write4bits(0x3, 0);
+	usleep(50);
 	write4bits(0x2, 0);	// 4-bit mode
 	usleep(50);
 	write8bits(0x6, 0);
