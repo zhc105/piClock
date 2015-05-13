@@ -12,7 +12,7 @@ LCD4bit::LCD4bit()
 	pin_data[3] = 3;
 	pin_e = 5;
 	pin_rs = 6;
-	pin_led = 7;	
+	pin_led = -1;	
 }
 
 LCD4bit::LCD4bit(int rs, int e, int data[4], int led)
@@ -34,7 +34,8 @@ int LCD4bit::Init()
 
 	pinMode(pin_e, OUTPUT);
 	pinMode(pin_rs, OUTPUT);
-	pinMode(pin_led, OUTPUT);
+	if (pin_led >= 0)
+		pinMode(pin_led, OUTPUT);
 	for (int i = 0; i < 4; i++)
 		pinMode(pin_data[i], OUTPUT);
 
@@ -120,5 +121,6 @@ void LCD4bit::write8bits(int data, int rs)
 
 void LCD4bit::Backlight(int value)
 {
-	digitalWrite(pin_led, value);
+	if (pin_led >= 0)
+		digitalWrite(pin_led, value);
 }

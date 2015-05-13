@@ -8,12 +8,14 @@
 ClockDaemon::ClockDaemon()
 {
 	bmp085 = new BMP085(__BMP085_ULTRAHIGHRES);
+	dht = new CDHTReader(7, DHT_TYPE_DHT22);
 	lcd = new LCD4bit;
 }
 
 ClockDaemon::~ClockDaemon()
 {
 	delete bmp085;
+	delete dht;
 	delete lcd;
 }
 
@@ -35,9 +37,17 @@ void ClockDaemon::UpdateTemperature()
 {
 	MYSQL mysql;
 
+	double humidity = 0.0, dht_temp = 0.0;
 	double temperature = bmp085->ReadTemperature();
 	double pressure = bmp085->ReadPressure();
 	double cpu_temp = GetCPUTemp();
+	for (int retry = 0; retry < 10; retry++)
+	{
+		int ret;
+		if ((ret = dht->read(dht_temp, humidity)) == 0)
+			break;
+		//printf("Read DHT failed %d\n", ret);
+	}
 	
 	//printf("CPU Temp:   %0.2f C\n", cpu_temp);
 	//printf("Temperture: %0.2f C\n", temperature);
@@ -62,6 +72,16 @@ void ClockDaemon::UpdateTemperature()
 			cpu_temp);
 		if (mysql_query(&mysql, sql))
 			printf("Update Failed!\n");
+		snprintf(sql, sizeof(sql), 
+			"insert into module_report(update_date, report_id, value) values (now(), '5', '%f')", 
+			humidity);
+		if (mysql_query(&mysql, sql))
+			printf("Update Failed!\n");
+		snprintf(sql, sizeof(sql), 
+			"insert into module_report(update_date, report_id, value) values (now(), '6', '%f')", 
+			dht_temp);
+		if (mysql_query(&mysql, sql))
+			printf("Update Failed!\n");
 	}	
 	printf("Update Finished!\n");
 	mysql_close(&mysql);
@@ -72,6 +92,7 @@ int ClockDaemon::Start()
 	time_t last_update = 0;
 	daemon(1, 0);
 	lcd->Init();
+	dht->init();
 	while (1)
 	{
 		int i, len;
@@ -99,7 +120,7 @@ int ClockDaemon::Start()
 			UpdateTemperature();
 		}
 
-		sleep(60);
+		sleep(29);
 	}
 	return 0;
 }

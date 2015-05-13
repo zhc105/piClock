@@ -5,6 +5,7 @@ LIBS = -lwiringPi $(shell mysql_config --libs)
 TARGET = piClock
 
 OBJS =	BMP085.o \
+	DHTReader.o \
 	LCD4bit.o \
 	ClockDaemon.o \
 	main.o
@@ -22,6 +23,7 @@ main.o : ClockDaemon.h
 ClockDaemon.o : BMP085.h LCD4bit.h
 LCD4bit.o : LCD4bit.h
 BMP085.o : BMP085.h
+DHT11Reader.o : DHT11Reader.h
 
 clean:
 	rm *.o $(TARGET)

@@ -28,14 +28,14 @@ BMP085::BMP085(INT mode)
 
 INT BMP085::ReadI16(UINT address)
 {
-        CHAR msb = wiringPiI2CReadReg8(fd, address);
+	CHAR msb = wiringPiI2CReadReg8(fd, address);
 	UCHAR lsb = wiringPiI2CReadReg8(fd, address + 1);
 	return ((INT) msb << 8) | lsb;
 }
 
 INT BMP085::ReadI16U(UINT address)
 {
-        UCHAR msb = wiringPiI2CReadReg8(fd, address);
+	UCHAR msb = wiringPiI2CReadReg8(fd, address);
 	UCHAR lsb = wiringPiI2CReadReg8(fd, address + 1);
 	return ((INT) msb << 8) | lsb;
 }
@@ -43,7 +43,7 @@ INT BMP085::ReadI16U(UINT address)
 INT BMP085::ReadRawTemp()
 {
 	wiringPiI2CWriteReg8(fd, 0xF4, 0x2E);
-        usleep(5000);
+	usleep(5000);
 	return ReadI16U(0xF6);
 }
 
@@ -69,15 +69,15 @@ INT BMP085::ReadRawPressure()
 
 double BMP085::ReadTemperature()
 {
-        INT ut;
-        LONG x1, x2, b5, b6;
+	INT ut;
+	LONG x1, x2, b5, b6;
 
-        ut = ReadRawTemp();
-        //printf("UT  = %d\n", ut);
+	ut = ReadRawTemp();
+	//printf("UT  = %d\n", ut);
 
-        x1 = (((LONG) ut - (LONG) ac6) * (LONG) ac5) >> 15;
-        x2 = ((LONG) mc << 11) / (x1 + md);
-        b5 = x1 + x2;
+	x1 = (((LONG) ut - (LONG) ac6) * (LONG) ac5) >> 15;
+	x2 = ((LONG) mc << 11) / (x1 + md);
+	b5 = x1 + x2;
 
 	double temp = (double)((b5 + 8) >> 4) / 10.0;
 	return temp;
@@ -126,27 +126,27 @@ double BMP085::ReadPressure()
 void BMP085::ReadCalibration()
 {
 	ac1 = ReadI16(0xAA);
-        ac2 = ReadI16(0xAC);
-        ac3 = ReadI16(0xAE);
-        ac4 = ReadI16U(0xB0);
-        ac5 = ReadI16U(0xB2);
-        ac6 = ReadI16U(0xB4);
-        b1 = ReadI16(0xB6);
-        b2 = ReadI16(0xB8);
-        mb = ReadI16(0xBA);
-        mc = ReadI16(0xBC);
-        md = ReadI16(0xBE);
-        /*
-        printf("AC1 = %d\n", ac1);
-        printf("AC2 = %d\n", ac2);
-        printf("AC3 = %d\n", ac3);
-        printf("AC4 = %d\n", ac4);
-        printf("AC5 = %d\n", ac5);
-        printf("AC6 = %d\n", ac6);
-        printf("B1  = %d\n", b1);
-        printf("B2  = %d\n", b2);
-        printf("MB  = %d\n", mb);
-        printf("MC  = %d\n", mc);
-        printf("MD  = %d\n", md);
-        */
+	ac2 = ReadI16(0xAC);
+	ac3 = ReadI16(0xAE);
+	ac4 = ReadI16U(0xB0);
+	ac5 = ReadI16U(0xB2);
+	ac6 = ReadI16U(0xB4);
+	b1 = ReadI16(0xB6);
+	b2 = ReadI16(0xB8);
+	mb = ReadI16(0xBA);
+	mc = ReadI16(0xBC);
+	md = ReadI16(0xBE);
+	/*
+	printf("AC1 = %d\n", ac1);
+	printf("AC2 = %d\n", ac2);
+	printf("AC3 = %d\n", ac3);
+	printf("AC4 = %d\n", ac4);
+	printf("AC5 = %d\n", ac5);
+	printf("AC6 = %d\n", ac6);
+	printf("B1  = %d\n", b1);
+	printf("B2  = %d\n", b2);
+	printf("MB  = %d\n", mb);
+	printf("MC  = %d\n", mc);
+	printf("MD  = %d\n", md);
+	*/
 }
