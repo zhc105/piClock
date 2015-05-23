@@ -90,6 +90,7 @@ void ClockDaemon::UpdateTemperature()
 int ClockDaemon::Start()
 {
 	time_t last_update = 0;
+	int reinit_time = 0;
 	daemon(1, 0);
 	lcd->Init();
 	dht->init();
@@ -111,6 +112,12 @@ int ClockDaemon::Start()
 		snprintf(Buf, 50, "T:%0.1f P:%0.2f", 
 			bmp085->ReadTemperature(), 
 			bmp085->ReadPressure());
+			
+		if (++reinit_time > 100)
+		{
+			lcd->Init();
+			reinit_time = 0;
+		}
 		lcd->Print(1, 0, Buf);
 		//printf("%s\n", Buf);
 
