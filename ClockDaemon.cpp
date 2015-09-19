@@ -37,6 +37,7 @@ void ClockDaemon::UpdateTemperature()
 {
 	MYSQL mysql;
 
+	char value = 1;
 	double humidity = 0.0, dht_temp = 0.0;
 	double temperature = bmp085->ReadTemperature();
 	double pressure = bmp085->ReadPressure();
@@ -54,6 +55,7 @@ void ClockDaemon::UpdateTemperature()
 	//printf("Pressure:   %0.2f hPa\n", pressure);
 
 	mysql_init(&mysql);
+	mysql_options(&mysql, MYSQL_OPT_RECONNECT, (char *)&value);
 	if (mysql_real_connect(&mysql, "192.168.225.107", "root", "1048576", "blogpi", 3306, NULL, 0) != NULL)
 	{
 		char sql[256];
