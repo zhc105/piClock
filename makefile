@@ -8,7 +8,10 @@ OBJS =	BMP085.o \
 	DHTReader.o \
 	LCD4bit.o \
 	ClockDaemon.o \
-	main.o
+	main.o \
+	utils/m_log.o \
+	utils/m_sem.o \
+	utils/setproctitle.o
 
 all : $(TARGET)
 	@echo "All done"

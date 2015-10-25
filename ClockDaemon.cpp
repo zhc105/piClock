@@ -4,6 +4,13 @@
 #include <unistd.h>
 #include <ctime>
 #include "ClockDaemon.h"
+#include "utils/m_log.h"
+extern "C"
+{
+	#include "utils/setproctitle.h"
+}
+
+TDebugLog g_log;
 
 ClockDaemon::ClockDaemon()
 {
@@ -47,12 +54,12 @@ void ClockDaemon::UpdateTemperature()
 		int ret;
 		if ((ret = dht->read(dht_temp, humidity)) == 0)
 			break;
-		//printf("Read DHT failed %d\n", ret);
+		WRN("Read DHT failed %d, retry: %d\n", ret, retry);
 	}
 	
-	//printf("CPU Temp:   %0.2f C\n", cpu_temp);
-	//printf("Temperture: %0.2f C\n", temperature);
-	//printf("Pressure:   %0.2f hPa\n", pressure);
+	INF("CPU Temp:   %0.2f C\n", cpu_temp);
+	INF("Temperture: %0.2f C\n", temperature);
+	INF("Pressure:   %0.2f hPa\n", pressure);
 
 	mysql_init(&mysql);
 	mysql_options(&mysql, MYSQL_OPT_RECONNECT, (char *)&value);
@@ -63,29 +70,29 @@ void ClockDaemon::UpdateTemperature()
 			"insert into module_report(update_date, report_id, value) values (now(), '1', '%f')", 
 			temperature);
 		if (mysql_query(&mysql, sql))
-			printf("Update Failed!\n");
+			CRT("Insert db failed: %s!\n", mysql_error(&mysql));
 		snprintf(sql, sizeof(sql), 
 			"insert into module_report(update_date, report_id, value) values (now(), '2', '%f')", 
 			pressure);
 		if (mysql_query(&mysql, sql))
-			printf("Update Failed!\n");
+			CRT("Insert db failed: %s!\n", mysql_error(&mysql));
 		snprintf(sql, sizeof(sql), 
 			"insert into module_report(update_date, report_id, value) values (now(), '3', '%f')", 
 			cpu_temp);
 		if (mysql_query(&mysql, sql))
-			printf("Update Failed!\n");
+			CRT("Insert db failed: %s!\n", mysql_error(&mysql));
 		snprintf(sql, sizeof(sql), 
 			"insert into module_report(update_date, report_id, value) values (now(), '5', '%f')", 
 			humidity);
 		if (mysql_query(&mysql, sql))
-			printf("Update Failed!\n");
+			CRT("Insert db failed: %s!\n", mysql_error(&mysql));
 		snprintf(sql, sizeof(sql), 
 			"insert into module_report(update_date, report_id, value) values (now(), '6', '%f')", 
 			dht_temp);
 		if (mysql_query(&mysql, sql))
-			printf("Update Failed!\n");
+			CRT("Insert db failed: %s!\n", mysql_error(&mysql));
 	}	
-	printf("Update Finished!\n");
+	INF("DB Update Finished!\n");
 	mysql_close(&mysql);
 }
 
@@ -94,6 +101,9 @@ int ClockDaemon::Start()
 	time_t last_update = 0;
 	int reinit_time = 0;
 	daemon(1, 0);
+	LOG_OPEN(7, "log", "piClock", 10000000, 5, 0x08991000);
+	setproctitle("piClock", "daemon");
+
 	lcd->Init();
 	dht->init();
 	while (1)
@@ -111,6 +121,9 @@ int ClockDaemon::Start()
 				Last[i] = Buf[i];
 				lcd->PrintChar(0, i, Buf[i]); 
 			}
+
+		DBG("screen output1: %s\n", Buf);
+
 		snprintf(Buf, 50, "T:%0.1f P:%0.2f", 
 			bmp085->ReadTemperature(), 
 			bmp085->ReadPressure());
@@ -121,7 +134,7 @@ int ClockDaemon::Start()
 			reinit_time = 0;
 		}
 		lcd->Print(1, 0, Buf);
-		//printf("%s\n", Buf);
+		DBG("screen output2: %s\n", Buf);
 
 		if (t >= last_update + UPDATE_STEPS)
 		{
@@ -129,7 +142,10 @@ int ClockDaemon::Start()
 			UpdateTemperature();
 		}
 
-		sleep(29);
+		while (time(NULL) / 60 <= t / 60) // sleep until next minute coming
+		{
+			sleep(1);
+		}
 	}
 	return 0;
 }

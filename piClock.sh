@@ -9,24 +9,26 @@
 ### END INIT INFO
 
 USER=root
-DAEMON=/home/pi/workspace/piClock/piClock
+ROOT=/home/pi/workspace/piClock
+DAEMON=./piClock
 
 case "$1" in
 start)
     echo "Start piClock"
     umask 0002
-    su - $USER -c "$DAEMON"
+    su - $USER -c "cd $ROOT; $DAEMON"
     ;;
 stop)
     echo "Stopping piClock, please wait..."
-    killall -w piClock
+    killall -s SIGINT -w piClock
     ;;
 restart)
     echo "Stopping piClock, please wait..."
-    killall -w piClock
+    killall -s SIGINT -w piClock
     echo "Start piClock"
     umask 0002
-    su - $USER -c "$DAEMON"
+	cd $ROOT
+    su - $USER -c "cd $ROOT; $DAEMON"
     ;;
 *)
     echo "$0 {start|stop|restart|status}"
