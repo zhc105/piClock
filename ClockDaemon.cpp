@@ -60,6 +60,8 @@ void ClockDaemon::UpdateTemperature()
 	INF("CPU Temp:   %0.2f C\n", cpu_temp);
 	INF("Temperture: %0.2f C\n", temperature);
 	INF("Pressure:   %0.2f hPa\n", pressure);
+	INF("Humidity:   %0.2f %\n", humidity);
+	INF("DHT_Temp:   %0.2f C\n", dht_temp);
 
 	mysql_init(&mysql);
 	mysql_options(&mysql, MYSQL_OPT_RECONNECT, (char *)&value);
