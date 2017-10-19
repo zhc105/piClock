@@ -10,6 +10,12 @@ extern "C"
 	#include "utils/setproctitle.h"
 }
 
+#define MYSQL_SERVER    "192.168.1.1"
+#define MYSQL_PORT      3306
+#define MYSQL_USER      "root"
+#define MYSQL_PASSWORD  "*"
+#define MYSQL_DATABASE  "*"
+
 TDebugLog g_log;
 
 ClockDaemon::ClockDaemon()
@@ -63,9 +69,11 @@ void ClockDaemon::UpdateTemperature()
 	INF("Humidity:   %0.2f %%\n", humidity);
 	INF("DHT_Temp:   %0.2f C\n", dht_temp);
 
+    mysql_library_init(0, NULL, NULL);
 	mysql_init(&mysql);
 	mysql_options(&mysql, MYSQL_OPT_RECONNECT, (char *)&value);
-	if (mysql_real_connect(&mysql, "192.168.225.107", "root", "1048576", "blogpi", 3306, NULL, 0) != NULL)
+	if (mysql_real_connect(&mysql, MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, 
+            MYSQL_PORT, NULL, 0) != NULL)
 	{
 		char sql[256];
 		snprintf(sql, sizeof(sql), 
@@ -93,9 +101,14 @@ void ClockDaemon::UpdateTemperature()
 			dht_temp);
 		if (mysql_query(&mysql, sql))
 			CRT("Insert db failed: %s!\n", mysql_error(&mysql));
-	}	
+	} 
+    else 
+    {
+        CRT("Error connection to database: %s\n", mysql_error(&mysql));
+    }
 	INF("DB Update Finished!\n");
 	mysql_close(&mysql);
+    mysql_library_end();
 }
 
 int ClockDaemon::Start()
@@ -138,7 +151,7 @@ int ClockDaemon::Start()
 		lcd->Print(1, 0, Buf);
 		DBG("screen output2: %s\n", Buf);
 
-		if (t >= last_update + UPDATE_STEPS)
+		if (t >= last_update + UPDATE_STEPS + 1)
 		{
 			last_update = t - (t % UPDATE_STEPS);
 			UpdateTemperature();
